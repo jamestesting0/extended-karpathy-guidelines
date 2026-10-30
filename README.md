@@ -9,6 +9,7 @@ The idea is a simple, short skill for day-to-day coding conventions: it helps th
 On top of the original four principles (think before coding, simplicity first, surgical changes, goal-driven
 execution), it adds:
 
+- **Readability:** clear names, comments that explain why, flat control flow, plain over clever.
 - **Guards and error handling:** validate once at trust boundaries, no guards without a named input and harm, no silent
   fallbacks.
 - **Tests that earn their place:** every test names the bug it catches; no tests that just restate the code.

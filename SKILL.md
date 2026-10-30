@@ -4,13 +4,7 @@ description: Decision rules for whether code should exist - guards, try/except, 
 license: MIT
 ---
 
-# Karpathy Guidelines (extended)
-
-Derived from [Andrej Karpathy's observations](https://x.com/karpathy/status/2015883857489522876) on LLM coding
-pitfalls, extended with rules on guards and tests.
-
-This skill decides whether code should exist. Per-language rules (types, error classes, mocking, test determinism)
-live in `programming`; cleaning up existing code lives in `remove-ai-slops`.
+# Extended Karpathy Guidelines
 
 **Guiding principle:** Every abstraction, validation, dependency, defensive branch, and test must justify itself
 through a concrete requirement or a named risk. Among equally correct solutions, choose the simpler one.
@@ -31,7 +25,19 @@ through a concrete requirement or a named risk. Among equally correct solutions,
 - No new dependency, config, or architectural pattern without a concrete reason.
 - If 200 lines could be 50, rewrite it.
 
-## 3. Guards and Error Handling
+## 3. Readability
+
+**Code should read correctly the first time.**
+
+- Names say what a thing is or does; booleans read as questions (`is_active`, `has_slot`). Follow the codebase's naming.
+- Comments explain why: a constraint, workaround, or non-obvious decision. No comments that restate the code, narrate
+  the change ("added X", "now uses Y"), divide steps, or hold commented-out code.
+- Use early returns when they flatten nesting; keep the happy path at the lowest indentation.
+- Name a number only when its meaning isn't obvious from context.
+- Plain over clever: no nested ternaries or one-liners that need a second read.
+- Split a function by responsibility, not length: split when describing it needs an "and".
+
+## 4. Guards and Error Handling
 
 **Name the input and the harm, or don't write the guard.**
 
@@ -45,7 +51,7 @@ and (2) what goes wrong without it. If you cannot name both, leave it out.
 - No silent fallbacks: a default that hides a failure is worse than a crash.
 - Layered checks are justified only for security and authorization, destructive or irreversible operations, money or
   data integrity, explicitly required reliability, or a named code path that bypasses the boundary.
-- Do not add code for unlikely edge cases. If the impact would be material, note it in one summary line with its
+- For unlikely edge cases, add no code. If the impact would be material, note it in one summary line with its
   likelihood.
 
 ```python
@@ -61,16 +67,14 @@ def apply_discount(order: Order, user: User) -> None:
 # After: the signature is the contract
 def apply_discount(order: Order, user: User) -> None:
     order.total -= user.discount
-```
 
-```python
 # Before: a required key silently falls back
 timeout = config.get("timeout_s", 30)
 # After: a missing required key fails loudly at the boundary
 timeout = config["timeout_s"]
 ```
 
-## 4. Surgical Changes
+## 5. Surgical Changes
 
 **Touch only what you must. Clean up only your own mess.**
 
@@ -81,7 +85,7 @@ timeout = config["timeout_s"]
 
 Every changed line should trace directly to the request.
 
-## 5. Tests That Earn Their Place
+## 6. Tests That Earn Their Place
 
 **Every test names the bug it catches.**
 
@@ -99,17 +103,18 @@ Every changed line should trace directly to the request.
 - Add tests only where the repo keeps tests for that area; otherwise verify by running the real entry point and say so.
 - For a bug fix, reproduce the bug first and confirm the new test fails without the fix.
 
-## 6. Goal-Driven Execution
+## 7. Goal-Driven Execution
 
-- Turn the task into a check: "fix the bug" -> reproduce, then make it pass; "refactor X" -> same results before and
-  after; "add boundary validation" -> a malformed input is rejected.
+- Turn the task into a check: "refactor X" -> same results before and after; "add boundary validation" -> a
+  malformed input is rejected.
 - For multi-step tasks, state each step with its verification.
 - Run the targeted tests; widen only for risky or cross-cutting changes.
 - Report what changed, how it was verified, and any material remaining risk.
 
-## 7. Before You Finish
+## 8. Before You Finish
 
-- Every guard names its input; every `except` names its exception.
+- Every guard names its input and harm; every catch names its exception.
 - Every test names the bug it catches.
+- Every comment explains why.
 - Every new function is reused or makes the code clearer.
 - Every changed line traces to the request.
